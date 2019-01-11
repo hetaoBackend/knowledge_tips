@@ -95,4 +95,8 @@ puts markdown<span class="token punctuation">.</span>to_html
 <td align="right">Right</td>
 </tr>
 </tbody>
-</table>
+</table><hr>
+<h3 id="indent">indent</h3>
+<p>&amp;nbsp; can be used to show space<br>
+tab can use four &amp;nbsp;</p>
+

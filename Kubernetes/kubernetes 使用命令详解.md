@@ -20,4 +20,14 @@ kubectl describe node &lt;node_name&gt;
 <li>在默认情况下，当Pod中某个容器停止时，Kubernetes会自动检测到这个问题并且重新启动这个Pod（重启Pod里的所有容器），如果Pod所在的Node宕机，则会将这个Node上的所有Pod重新调度到其他节点上。</li>
 </ul>
 <h3 id="label">Label</h3>
+<ul>
+<li>Label是key=value的键值对，其中key与value由用户自己指定。Label可以附加到各种资源对象上，例如：Node、Pod、Service、RC等，一个资源对象可以定义任意数量的Label，同一个Label也可以被添加到任意数量的资源对象上去，Label通常在资源对象定义时确定，也可以在对象创建后动态添加或删除。</li>
+<li>name = redis-slave</li>
+<li>env != production</li>
+<li>name in (redis-master, redis-slave)</li>
+<li>name not in (php-frontend)</li>
+<li>kube-controller进程通过资源对象RC上定义的LabelSelector来筛选要监控的Pod副本的数量，从而实现Pod副本的数量始终符合预期设定的全自动控制流程。</li>
+<li>kube-proxy进程通过Service的Label Selector来选择对应的Pod，自动建立起每个Service到对应Pod的请求转发路由表，从而实现Service的智能负载均衡机制。</li>
+<li>通过对某些Node定义特定的Label，并且在Pod定义文件中使用Node Selector这种标签调度策略，kube-scheduler进程可以实现Pod“定向调度”的特性。</li>
+</ul>
 

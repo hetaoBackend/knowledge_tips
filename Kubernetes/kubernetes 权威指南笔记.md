@@ -30,4 +30,33 @@ kubectl describe node &lt;node_name&gt;
 <li>kube-proxy进程通过Service的Label Selector来选择对应的Pod，自动建立起每个Service到对应Pod的请求转发路由表，从而实现Service的智能负载均衡机制。</li>
 <li>通过对某些Node定义特定的Label，并且在Pod定义文件中使用Node Selector这种标签调度策略，kube-scheduler进程可以实现Pod“定向调度”的特性。</li>
 </ul>
+<h3 id="replication-controller-rc">Replication Controller (RC)</h3>
+<ul>
+<li>RC 是 Kubernetes中一个期望的场景，即声明某种Pod的副本数量在任意时刻都符合某个预期值，所以RC的定义包括如下几个部分:
+<ol>
+<li>Pod 期待的副本数（replicas）</li>
+<li>用于筛选目标Pod的Label Selector</li>
+<li>当Pod的副本数量小于预期数量的时候，用于创建新Pod的Pod模板（template）</li>
+</ol>
+</li>
+<li>当我们定义一个RC并提交到Kubernetes集群中以后，Master节点上的Controller Manager组件就得到通知，定期巡检系统中当前存活的目标Pod，并确保目标Pod实例的数量刚好等于此RC的期望值，如果有过多的Pod副本在运行，系统就会停掉一些Pod，否则系统就会再手动创建一些Pod。</li>
+</ul>
+<h3 id="deployment">Deployment</h3>
+<ul>
+<li>Deployment是为了更好地解决Pod的编排问题。</li>
+<li>Deployment的典型应用场景有以下几个：
+<ol>
+<li>创建一个Deployment对象来生成对应的Replica Set并完成Pod副本的创建过程。</li>
+<li>检查Deployment的状态来看部署动作是否完成（Pod副本的数量是否达到预期的值）。</li>
+<li>更新Deployment以创建新的Pod</li>
+<li>如果当前Deployment不稳定，则回滚到一个早先的Deployment版本</li>
+<li>挂起或者恢复一个Deployment</li>
+</ol>
+</li>
+</ul>
+<h3 id="service">Service</h3>
+<ul>
+<li>Kubernetes的Service定义了一个服务的访问入口地址，前段的应用（Pod）通过这个入口地址访问其背后的一组由Pod副本组成的集群实例，Service与其后端Pod副本集群之间则是通过Label Selector来实现“无缝对接”的。而RC的作用实际上是保证Service的服务能力和服务质量始终处于预期的标准。</li>
+<li>既然每个Pod都会分配一个单独的IP地址，而且每个Pod都提供一个独立的Endpoint(Pod IP + ContainerPort) 以被客户端访问，现在多个Pod副本组成一个集群来提供服务，会部署一个负载均衡器，为这组Pod开启一个对外的服务端口，并且将这些Pod的Endpoint列表加入服务端口的转发列表中，客户端就可以通过负载均衡器的对外IP地址+服务端口来访问此服务，而客户端的请求最后会被转发到哪个Pod，则由负载均衡器的算法决定。</li>
+</ul>
 

@@ -58,5 +58,57 @@ kubectl describe node &lt;node_name&gt;
 <ul>
 <li>Kubernetes的Service定义了一个服务的访问入口地址，前段的应用（Pod）通过这个入口地址访问其背后的一组由Pod副本组成的集群实例，Service与其后端Pod副本集群之间则是通过Label Selector来实现“无缝对接”的。而RC的作用实际上是保证Service的服务能力和服务质量始终处于预期的标准。</li>
 <li>既然每个Pod都会分配一个单独的IP地址，而且每个Pod都提供一个独立的Endpoint(Pod IP + ContainerPort) 以被客户端访问，现在多个Pod副本组成一个集群来提供服务，会部署一个负载均衡器，为这组Pod开启一个对外的服务端口，并且将这些Pod的Endpoint列表加入服务端口的转发列表中，客户端就可以通过负载均衡器的对外IP地址+服务端口来访问此服务，而客户端的请求最后会被转发到哪个Pod，则由负载均衡器的算法决定。</li>
+<li>运行在每个Node上的kube-proxy进程其实就是一个智能的软件负载均衡器，它负责把对Service的请求转发到后端的某个Pod实例上，并在内部实现服务的负载均衡与会话保持机制。</li>
+<li>Kubernetes中，Service不是共用一个负载均衡器的IP地址，而是每个service分配一个全局唯一的虚拟IP地址，这个虚拟IP地址就成为ClusterIP。</li>
+<li>Service一旦创建，它的clusterIP不会发生改变，Service的name和Service的ClusterIP地址做一个DNS域名映射即可。</li>
+</ul>
+<h3 id="kubernetes的服务发现机制">Kubernetes的服务发现机制</h3>
+<ul>
+<li>任何分布式系统都会涉及“服务发现”这个基础问题，大部分分布式系统通过提供特定的API接口来实现服务发现的功能，这样会导致平台的侵入性太强。</li>
+<li>通过环境变量的形式来讲ClusterIP与Service进行绑定‘’</li>
+<li>Node IP: Node节点的IP地址;</li>
+<li>Pod IP: Pod的IP地址；</li>
+<li>Cluster IP: Service的IP地址。</li>
+<li>Node IP是kubernetes集群中每个节点的物理网卡的IP地址，这是一个真实存在的物理网络，所有属于这个网络的服务器之间都能通过这个网络直接通信，不管它们中是否有部分节点不属于这个Kubernetes集群。这也表明Kubernetes集群之外的节点访问Kubernetes集群之内的某个节点或者TCP/IP服务的时候，必须要通过NodeIP进行通信。</li>
+<li>其次，Pod IP是每个Pod的IP地址，它是Docker Engine根据docker0网桥的IP地址段进行分配的，通常是一个虚拟的二层网络，Kubernetes要求位于不同Node上的Pod能够彼此直接通信，所以Kubernetes里一个Pod里的容器访问另外一个Pod里的容器，就是通过Pod IP所在的虚拟二层网络进行通信的，而真实的TCP/IP流量则是通过Node IP所在的物理网卡流出。</li>
+<li>Cluster IP是一个虚拟的IP
+<ol>
+<li>Cluster IP仅仅作用于Kubernetes Service这个对象，并由Kubernetes管理和分配IP地址（来源于Cluster IP地址池）</li>
+<li>Cluster IP无法被ping，因为没有一个“实体网络对象”来响应</li>
+<li>Cluster IP只能结合Service Port组成一个具体的通信端口，单独的Cluster IP不具备TCP/IP通信的基础，并且它们属于Kubernetes集群这样一个封闭的空间，集群以外的节点如果要访问这个通信端口，则需要做一些额外工作。</li>
+<li>在Kubernetes集群之内，Node IP网、Pod IP网与Cluster IP网之间的通信，采用的是Kubernetes自己设计的路由规则</li>
+</ol>
+</li>
+<li>Service向外暴露
+<ol>
+<li>NodePort的方式，在Kubernetes集群里的每个Node上为需要外部访问的Service开启一个对应的TCP监听端口，外部系统只要用任意一个Node的IP地址+具体的NodePort端口号即可访问服务。</li>
+<li>LoadBalancer的方式，Kubernetes会自动创建一个对应的Load balancer实例并返回它的IP地址供外部客户端使用。</li>
+</ol>
+</li>
+</ul>
+<h3 id="volume">Volume</h3>
+<ul>
+<li>Volume是Pod中能够被多个容器访问的共享目录，生命周期与Pod一致
+<ol>
+<li>emptyDir</li>
+<li>hostPath</li>
+<li>NFS</li>
+</ol>
+</li>
+</ul>
+<h3 id="persistent-volume">Persistent Volume</h3>
+<ul>
+<li>PV可以理解成Kubernetes集群中的某个网络存储中对应的一块存储，它与Volume很类似，但有以下区别：
+<ol>
+<li>PV只能是网路存储，不属于任何Node，但可以在每个Node上访问。</li>
+<li>PV并不是定义在Pod上的。而是独立于Pod之外定义。</li>
+<li>PV目前只有几种类型</li>
+</ol>
+</li>
+</ul>
+<h3 id="namespace">Namespace</h3>
+<ul>
+<li>Namespace（命名空间）是Kubernetes系统中的用于实现多租户的资源隔离。Namespace通过将集群内部的资源对象“分配”到不同的Namespace中，形成逻辑上分组的不同项目、小组或用户组，便于不同的分组在共享使用整个集群的资源的同事还能被分别管理。</li>
+<li></li>
 </ul>
 
